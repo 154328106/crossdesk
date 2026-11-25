@@ -76,20 +76,29 @@ private struct CDCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(CDTheme.card, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .background {
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        // A whisper of white keeps the frosted surface luminous
+                        // over the tinted canvas instead of going grey.
+                        RoundedRectangle(cornerRadius: radius, style: .continuous)
+                            .fill(Color.white.opacity(0.34))
+                    }
+            }
             .overlay {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(CDTheme.stroke, lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.62), lineWidth: 1)
             }
-            .shadow(color: Color.black.opacity(elevated ? 0.07 : 0.035),
-                    radius: elevated ? 20 : 12,
+            .shadow(color: Color.black.opacity(elevated ? 0.08 : 0.04),
+                    radius: elevated ? 22 : 12,
                     x: 0,
-                    y: elevated ? 9 : 5)
+                    y: elevated ? 10 : 5)
     }
 }
 
 extension View {
-    /// White rounded surface with the app's border and shadow tokens.
+    /// Frosted rounded surface with the app's border and shadow tokens.
     func cdCard(radius: CGFloat = CDTheme.cardRadius,
                 padding: CGFloat = CDTheme.cardPadding,
                 elevated: Bool = true) -> some View {
@@ -98,10 +107,11 @@ extension View {
 
     /// Inset field/segment background used inside cards.
     func cdInset(radius: CGFloat = CDTheme.innerRadius) -> some View {
-        background(CDTheme.cardMuted, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+        background(Color.white.opacity(0.62),
+                   in: RoundedRectangle(cornerRadius: radius, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(CDTheme.stroke, lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.55), lineWidth: 1)
             }
     }
 }
@@ -146,12 +156,19 @@ struct CDGroupCard<Content: View>: View {
             VStack(spacing: 0) {
                 content()
             }
-            .background(CDTheme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .background {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(Color.white.opacity(0.34))
+                    }
+            }
             .overlay {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(CDTheme.stroke, lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.62), lineWidth: 1)
             }
-            .shadow(color: Color.black.opacity(0.05), radius: 14, x: 0, y: 6)
+            .shadow(color: Color.black.opacity(0.06), radius: 18, x: 0, y: 8)
             if let footer {
                 Text(footer)
                     .font(.caption2)

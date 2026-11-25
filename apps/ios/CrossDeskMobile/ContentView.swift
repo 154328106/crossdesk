@@ -762,13 +762,13 @@ private struct RecentConnectionCard: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 9)
             }
-            .background(CDTheme.card)
+            .background(.ultraThinMaterial)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(CDTheme.stroke, lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.6), lineWidth: 1)
             }
-            .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 5)
+            .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 6)
         }
         .buttonStyle(.plain)
         .contextMenu { actions }

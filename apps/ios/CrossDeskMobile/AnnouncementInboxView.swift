@@ -198,17 +198,22 @@ struct AnnouncementInboxView: View {
             }
         }
         .padding(16)
-        .background(
-            LinearGradient(colors: [CDTheme.accent.opacity(0.13), CDTheme.brandEnd.opacity(0.07)],
-                           startPoint: .topLeading,
-                           endPoint: .bottomTrailing),
-            in: RoundedRectangle(cornerRadius: CDTheme.cardRadius, style: .continuous)
-        )
+        .background {
+            ZStack {
+                RoundedRectangle(cornerRadius: CDTheme.cardRadius, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: CDTheme.cardRadius, style: .continuous)
+                    .fill(LinearGradient(colors: [CDTheme.accent.opacity(0.20),
+                                                  CDTheme.brandEnd.opacity(0.12)],
+                                         startPoint: .topLeading,
+                                         endPoint: .bottomTrailing))
+            }
+        }
         .overlay {
             RoundedRectangle(cornerRadius: CDTheme.cardRadius, style: .continuous)
-                .strokeBorder(CDTheme.accent.opacity(0.16), lineWidth: 1)
+                .strokeBorder(Color.white.opacity(0.62), lineWidth: 1)
         }
-        .shadow(color: Color.black.opacity(0.05), radius: 16, x: 0, y: 7)
+        .shadow(color: Color.black.opacity(0.07), radius: 18, x: 0, y: 8)
     }
 
     @ViewBuilder
@@ -332,18 +337,26 @@ private struct AnnouncementRow: View {
                 .foregroundStyle(.tertiary)
                 .padding(.top, 3)
         }
-        .padding(.vertical, 13)
         .padding(.horizontal, 14)
+        .padding(.vertical, 13)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CDTheme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(Color.white.opacity(item.read ? 0.30 : 0.44))
+                }
+        }
         .overlay {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .strokeBorder(item.read ? CDTheme.stroke : CDTheme.unread.opacity(0.16), lineWidth: 1)
+                .strokeBorder(item.read ? Color.white.opacity(0.58) : CDTheme.unread.opacity(0.28),
+                              lineWidth: item.read ? 1 : 1.2)
         }
-        .shadow(color: Color.black.opacity(item.read ? 0.03 : 0.06),
-                radius: item.read ? 8 : 14,
+        .shadow(color: Color.black.opacity(item.read ? 0.04 : 0.08),
+                radius: item.read ? 10 : 18,
                 x: 0,
-                y: item.read ? 3 : 6)
+                y: item.read ? 4 : 8)
         .accessibilityElement(children: .combine)
         .accessibilityValue(item.read ? NSLocalizedString("已读", comment: "") : NSLocalizedString("未读", comment: ""))
     }

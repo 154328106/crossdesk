@@ -72,8 +72,8 @@ struct RemoteSessionView: View {
     @State private var cursorPosition: CGPoint?
     @State private var statusMenuVisible = false
     @State private var statusOrbCenter: CGPoint?
-    /// Hides every floating control so the remote desktop gets the whole screen.
-    @State private var fullscreen = false
+    /// Manual landscape lock driven by the control panel.
+    @State private var landscapeEnabled = false
     @GestureState private var statusOrbDragTranslation = CGSize.zero
 
     var body: some View {
@@ -205,10 +205,8 @@ struct RemoteSessionView: View {
                 .zIndex(20)
             }
 
-            if !fullscreen {
-                floatingStatusControls
-                    .zIndex(30)
-            }
+            floatingStatusControls
+                .zIndex(30)
 
             if session.isConnected && session.privacyScreen.unlockNotice {
                 privacyUnlockOverlay.zIndex(60)
@@ -218,15 +216,7 @@ struct RemoteSessionView: View {
                     .zIndex(50)
             }
         }
-        .statusBarHidden(hasVerticalSystemBar || fullscreen)
-        .overlay(alignment: .bottomTrailing) {
-            if fullscreen {
-                fullscreenExitButton
-                    .padding(.trailing, 16)
-                    .padding(.bottom, 18)
-                    .transition(.opacity)
-            }
-        }
+        .statusBarHidden(hasVerticalSystemBar)
         .alert(NSLocalizedString("升级提示", comment: ""), isPresented: Binding(
             get: { !session.privacyScreen.unlockNotice && session.remoteUpdateMessage != nil },
             set: { if !$0 && !session.privacyScreen.unlockNotice { session.dismissRemoteUpdate() } }
@@ -243,6 +233,7 @@ struct RemoteSessionView: View {
             }
         }
         .onAppear {
+            landscapeEnabled = session.autoLandscape
             mouseInput.send = { x, y, flag, wheel in
                 cursorPosition = CGPoint(x: CGFloat(x), y: CGFloat(y))
                 if flag == 1 || flag == 3 { systemKeyboardContext.remoteFocusWillChange() }
@@ -268,7 +259,7 @@ struct RemoteSessionView: View {
             cursorPosition = nil
             statusMenuVisible = false
             statusOrbCenter = nil
-            fullscreen = false
+            landscapeEnabled = false
         }
         .onValueChange(of: session.selectedDisplay) { _ in
             systemKeyboardContext.remoteFocusWillChange()
@@ -490,12 +481,13 @@ struct RemoteSessionView: View {
                                     disconnectConfirmationVisible = true
                                 }
                             },
-                            fullscreen: fullscreen,
+                            fullscreen: landscapeEnabled,
                             toggleFullscreen: {
                                 mouseInput.releaseAll()
-                                keyboardInputVisible = false
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    fullscreen = true
+                                let next = !landscapeEnabled
+                                landscapeEnabled = next
+                                AppOrientation.setSessionLandscape(next)
+                                withAnimation(.easeOut(duration: 0.16)) {
                                     statusMenuVisible = false
                                 }
                             }
@@ -541,29 +533,6 @@ struct RemoteSessionView: View {
             .frame(width: containerSize.width, height: containerSize.height)
             .onValueChange(of: containerSize) { _ in mouseInput.releaseAll() }
         }
-    }
-
-    /// Small translucent pill that stays reachable while every other control is
-    /// hidden. It is attached as an overlay on top of the video surface so the
-    /// touch input view underneath can never swallow its taps.
-    private var fullscreenExitButton: some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                fullscreen = false
-            }
-        } label: {
-            Image(systemName: "arrow.down.right.and.arrow.up.left")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 44, height: 32)
-                .background(Color.black.opacity(0.45), in: Capsule())
-                .overlay {
-                    Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1)
-                }
-        }
-        .buttonStyle(.plain)
-        .contentShape(Capsule())
-        .accessibilityLabel(NSLocalizedString("退出全屏", comment: ""))
     }
 
     private func boundedMouseCenter(_ preferred: CGPoint?, in size: CGSize) -> CGPoint {
@@ -1382,13 +1351,17 @@ private struct FloatingSessionMenu: View {
                     }
                     FloatingControlButton(title: NSLocalizedString("剪贴板", comment: ""), symbol: "doc.on.clipboard",
                                           action: session.sendClipboard)
-                    FloatingControlButton(
-                        title: NSLocalizedString("全屏", comment: ""),
-                        symbol: "arrow.up.left.and.arrow.down.right",
-                        selected: fullscreen,
-                        action: toggleFullscreen
-                    )
-                    .accessibilityHint(NSLocalizedString("隐藏所有浮动控件，只看远程画面", comment: ""))
+                    if UIDevice.current.userInterfaceIdiom != .pad {
+                        FloatingControlButton(
+                            title: fullscreen ? NSLocalizedString("退出全屏", comment: "")
+                                : NSLocalizedString("全屏", comment: ""),
+                            symbol: fullscreen ? "rectangle.portrait.rotate"
+                                : "rectangle.landscape.rotate",
+                            selected: fullscreen,
+                            action: toggleFullscreen
+                        )
+                        .accessibilityHint(NSLocalizedString("点一下横屏观看，再点还原屏幕方向", comment: ""))
+                    }
                     if session.privacyScreen.desktopAvailable {
                         FloatingControlButton(
                             title: session.privacyScreen.buttonTitle(at: session.privacyClock),
