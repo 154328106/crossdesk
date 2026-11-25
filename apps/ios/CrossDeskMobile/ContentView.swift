@@ -699,25 +699,28 @@ private struct RecentConnectionCard: View {
         Button(action: connect) {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .bottomLeading) {
-                    Group {
-                        if let thumbnail {
-                            Image(uiImage: thumbnail)
-                                .resizable()
-                                .scaledToFill()
-                        } else {
-                            platformGradient
-                            Text(connection.platform.displayName)
-                                .font(.system(size: 17, weight: .semibold, design: .rounded))
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.8)
-                                .foregroundStyle(.white)
-                                .padding(10)
-                                .accessibilityLabel(String(format: NSLocalizedString("被控端平台：%1$@", comment: ""), String(describing: connection.platform.displayName)))
+                    // A clear placeholder owns the frame: `scaledToFill` images
+                    // report their intrinsic size, which used to widen the card
+                    // past its grid column and clip the left edge.
+                    Color.clear
+                        .aspectRatio(16 / 10, contentMode: .fit)
+                        .overlay {
+                            if let thumbnail {
+                                Image(uiImage: thumbnail)
+                                    .resizable()
+                                    .scaledToFill()
+                            } else {
+                                platformGradient
+                                Text(connection.platform.displayName)
+                                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.8)
+                                    .foregroundStyle(.white)
+                                    .padding(10)
+                                    .accessibilityLabel(String(format: NSLocalizedString("被控端平台：%1$@", comment: ""), String(describing: connection.platform.displayName)))
+                            }
                         }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .aspectRatio(16 / 10, contentMode: .fit)
-                    .clipped()
+                        .clipped()
 
                     HStack(spacing: 5) {
                         Circle()

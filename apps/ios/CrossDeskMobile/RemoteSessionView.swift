@@ -1215,13 +1215,16 @@ private struct FloatingSessionMenu: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay {
+                    // The panel floats over the remote desktop, which is often a
+                    // dark window. Lift it with white so the frosted card stays
+                    // readable instead of turning charcoal.
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(Color.white.opacity(0.30))
+                        .fill(Color.white.opacity(0.66))
                 }
         }
         .overlay {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.55), lineWidth: 1)
+                .strokeBorder(Color.white.opacity(0.7), lineWidth: 1)
         }
         .shadow(color: .black.opacity(0.30), radius: 22, y: 10)
         .environment(\.colorScheme, .light)
@@ -1690,8 +1693,12 @@ private struct FloatingControlLabel: View {
         .foregroundStyle(.primary)
         .frame(maxWidth: .infinity)
         .frame(height: 52)
-        .background(Color.primary.opacity(0.07),
+        .background(Color.white.opacity(0.45),
                     in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.5), lineWidth: 1)
+        }
     }
 }
 
