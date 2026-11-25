@@ -1067,7 +1067,7 @@ private struct ServerSettingsView: View {
     // MARK: - Cards
 
     private var serverCard: some View {
-        CDGroupCard(title: NSLocalizedString("服务器", comment: "")) {
+        CDGroupCard {
             Button {
                 withAnimation(.easeInOut(duration: 0.18)) {
                     serverConfigurationExpanded.toggle()

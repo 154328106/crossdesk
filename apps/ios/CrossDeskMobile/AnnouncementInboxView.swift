@@ -247,12 +247,12 @@ struct AnnouncementInboxView: View {
                              message: session.announcementsConnected
                                 ? nil
                                 : NSLocalizedString("连接服务器后可获取最新公告。", comment: ""))
-                    .cdCard(padding: 8, elevated: false)
+                    .cdCard(padding: 20, elevated: false)
             } else if !state.loaded && !session.announcementsConnected {
                 CDEmptyState(systemImage: "wifi.slash",
                              title: NSLocalizedString("暂无公告", comment: ""),
                              message: NSLocalizedString("连接服务器后可获取最新公告。", comment: ""))
-                    .cdCard(padding: 8, elevated: false)
+                    .cdCard(padding: 20, elevated: false)
             }
         } else {
             ForEach(state.items) { item in
