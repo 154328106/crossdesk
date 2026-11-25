@@ -539,7 +539,7 @@ private struct ConnectionHomeView: View {
                              title: NSLocalizedString("该分组暂无近期连接", comment: ""))
             } else {
                 ScrollView(.vertical) {
-                    LazyVGrid(columns: recentConnectionColumns(windowWidth: windowWidth), spacing: 12) {
+                    LazyVGrid(columns: recentConnectionColumns(windowWidth: windowWidth), spacing: 8) {
                         ForEach(connections) { connection in
                             RecentConnectionCard(
                                 connection: connection,
@@ -554,6 +554,9 @@ private struct ConnectionHomeView: View {
                                     session.removeRecentConnection(connection)
                                 }
                             )
+                            // Breathing room so the card shadow is not cut off by
+                            // the lazy grid's item bounds.
+                            .padding(4)
                         }
                     }
                     .padding(.bottom, 2)
@@ -771,7 +774,11 @@ private struct RecentConnectionCard: View {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .strokeBorder(Color.white.opacity(0.6), lineWidth: 1)
             }
-            .shadow(color: Color.black.opacity(0.08), radius: 14, x: 0, y: 6)
+            // Keep the shadow tight: a wide blur bleeds past the lazy-grid item
+            // bounds and gets clipped into a hard vertical stripe. Compositing
+            // first also stops the material and its shadow rendering separately.
+            .compositingGroup()
+            .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 4)
         }
         .buttonStyle(.plain)
         .contextMenu { actions }
