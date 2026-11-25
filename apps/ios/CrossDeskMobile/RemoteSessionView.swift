@@ -210,11 +210,6 @@ struct RemoteSessionView: View {
                     .zIndex(30)
             }
 
-            if fullscreen {
-                fullscreenExitControl
-                    .zIndex(35)
-            }
-
             if session.isConnected && session.privacyScreen.unlockNotice {
                 privacyUnlockOverlay.zIndex(60)
             }
@@ -224,6 +219,14 @@ struct RemoteSessionView: View {
             }
         }
         .statusBarHidden(hasVerticalSystemBar || fullscreen)
+        .overlay(alignment: .bottomTrailing) {
+            if fullscreen {
+                fullscreenExitButton
+                    .padding(.trailing, 16)
+                    .padding(.bottom, 18)
+                    .transition(.opacity)
+            }
+        }
         .alert(NSLocalizedString("升级提示", comment: ""), isPresented: Binding(
             get: { !session.privacyScreen.unlockNotice && session.remoteUpdateMessage != nil },
             set: { if !$0 && !session.privacyScreen.unlockNotice { session.dismissRemoteUpdate() } }
@@ -541,31 +544,26 @@ struct RemoteSessionView: View {
     }
 
     /// Small translucent pill that stays reachable while every other control is
-    /// hidden. It only occupies its own frame, so the remote desktop keeps
-    /// receiving every other touch.
-    private var fullscreenExitControl: some View {
-        GeometryReader { proxy in
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    fullscreen = false
-                }
-            } label: {
-                Image(systemName: "arrow.down.right.and.arrow.up.left")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 42, height: 30)
-                    .background(Color.black.opacity(0.42), in: Capsule())
-                    .overlay {
-                        Capsule().strokeBorder(Color.white.opacity(0.16), lineWidth: 1)
-                    }
+    /// hidden. It is attached as an overlay on top of the video surface so the
+    /// touch input view underneath can never swallow its taps.
+    private var fullscreenExitButton: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                fullscreen = false
             }
-            .buttonStyle(.plain)
-            .position(x: max(30, proxy.size.width - 32),
-                      y: max(26, proxy.size.height - proxy.safeAreaInsets.bottom - 26))
-            .accessibilityLabel(NSLocalizedString("退出全屏", comment: ""))
+        } label: {
+            Image(systemName: "arrow.down.right.and.arrow.up.left")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 32)
+                .background(Color.black.opacity(0.45), in: Capsule())
+                .overlay {
+                    Capsule().strokeBorder(Color.white.opacity(0.18), lineWidth: 1)
+                }
         }
-        .ignoresSafeArea(.container, edges: hasVerticalSystemBar ? .all : [])
-        .transition(.opacity)
+        .buttonStyle(.plain)
+        .contentShape(Capsule())
+        .accessibilityLabel(NSLocalizedString("退出全屏", comment: ""))
     }
 
     private func boundedMouseCenter(_ preferred: CGPoint?, in size: CGSize) -> CGPoint {

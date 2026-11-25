@@ -197,7 +197,18 @@ struct AnnouncementInboxView: View {
                 .disabled(!canClearAll)
             }
         }
-        .cdCard(padding: 16)
+        .padding(16)
+        .background(
+            LinearGradient(colors: [CDTheme.accent.opacity(0.13), CDTheme.brandEnd.opacity(0.07)],
+                           startPoint: .topLeading,
+                           endPoint: .bottomTrailing),
+            in: RoundedRectangle(cornerRadius: CDTheme.cardRadius, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: CDTheme.cardRadius, style: .continuous)
+                .strokeBorder(CDTheme.accent.opacity(0.16), lineWidth: 1)
+        }
+        .shadow(color: Color.black.opacity(0.05), radius: 16, x: 0, y: 7)
     }
 
     @ViewBuilder

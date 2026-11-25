@@ -86,40 +86,79 @@ private struct ConsentCheckboxStyle: ToggleStyle {
     }
 }
 
-struct PrivacySettingsSection: View {
+/// Privacy rows rendered as a grouped card for the settings screen.
+struct PrivacySettingsCard: View {
     @ObservedObject var session: RemoteSessionModel
     @State private var confirmThumbnails = false
     @State private var confirmClear = false
 
+    private var thumbnailsBinding: Binding<Bool> {
+        Binding(
+            get: { session.savesConnectionThumbnails },
+            set: { enabled in
+                if enabled { confirmThumbnails = true }
+                else { session.setSavesConnectionThumbnails(false) }
+            }
+        )
+    }
+
     var body: some View {
-        Section {
+        CDGroupCard(title: NSLocalizedString("隐私", comment: "")) {
             NavigationLink {
                 PrivacyAuthorizationView(session: session)
             } label: {
-                HStack {
-                    Text(NSLocalizedString("隐私与授权", comment: ""))
-                    Spacer()
-                    Text(session.hasNetworkConsent ? NSLocalizedString("已授权", comment: "") : NSLocalizedString("未授权", comment: ""))
-                        .foregroundStyle(.secondary)
+                CDSettingRow(title: NSLocalizedString("隐私与授权", comment: ""),
+                             systemImage: "hand.raised.fill",
+                             tint: CDTheme.success) {
+                    HStack(spacing: 6) {
+                        Text(session.hasNetworkConsent
+                             ? NSLocalizedString("已授权", comment: "")
+                             : NSLocalizedString("未授权", comment: ""))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
                 }
             }
-            Toggle(NSLocalizedString("保存远程画面预览", comment: ""), isOn: Binding(
-                get: { session.savesConnectionThumbnails },
-                set: { enabled in
-                    if enabled { confirmThumbnails = true }
-                    else { session.setSavesConnectionThumbnails(false) }
-                }
-            ))
+            .buttonStyle(.plain)
+
+            CDRowDivider()
+
+            CDSettingRow(title: NSLocalizedString("保存远程画面预览", comment: ""),
+                         systemImage: "photo.on.rectangle.angled",
+                         tint: CDTheme.warning) {
+                Toggle("", isOn: thumbnailsBinding)
+                    .labelsHidden()
+            }
             .disabled(!session.hasNetworkConsent || session.thumbnailCleanupInProgress)
-            Button(session.thumbnailCleanupInProgress ? NSLocalizedString("正在清除…", comment: "") : NSLocalizedString("清除预览图", comment: ""), role: .destructive) {
+
+            CDRowDivider()
+
+            Button {
                 confirmClear = true
+            } label: {
+                CDSettingRow(title: session.thumbnailCleanupInProgress
+                             ? NSLocalizedString("正在清除…", comment: "")
+                             : NSLocalizedString("清除预览图", comment: ""),
+                             systemImage: "trash.fill",
+                             tint: CDTheme.danger,
+                             titleColor: CDTheme.danger)
             }
+            .buttonStyle(.plain)
             .disabled(session.thumbnailCleanupInProgress)
+
             if let error = session.thumbnailCleanupError {
-                Text(error).font(.footnote).foregroundStyle(.secondary)
+                CDRowDivider()
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
             }
-        } header: {
-            Text(NSLocalizedString("隐私", comment: ""))
         }
         .alert(NSLocalizedString("保存远程画面预览？", comment: ""), isPresented: $confirmThumbnails) {
             Button(NSLocalizedString("开启保存", comment: "")) { session.setSavesConnectionThumbnails(true) }

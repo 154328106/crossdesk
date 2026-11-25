@@ -534,11 +534,9 @@ private struct ConnectionHomeView: View {
                 CDEmptyState(systemImage: "clock.arrow.circlepath",
                              title: NSLocalizedString("还没有连接记录", comment: ""),
                              message: NSLocalizedString("成功连接后，这里会显示远端桌面的缩略图。", comment: ""))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if connections.isEmpty {
                 CDEmptyState(systemImage: "folder",
                              title: NSLocalizedString("该分组暂无近期连接", comment: ""))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView(.vertical) {
                     LazyVGrid(columns: recentConnectionColumns(windowWidth: windowWidth), spacing: 12) {
@@ -562,7 +560,7 @@ private struct ConnectionHomeView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, alignment: .top)
         .cdCard(padding: 16)
     }
 
@@ -1010,106 +1008,29 @@ private struct ServerSettingsView: View {
     }
 
     var body: some View {
-        Form {
-            Section(NSLocalizedString("鼠标控制", comment: "")) {
-                Picker(NSLocalizedString("控制模式", comment: ""), selection: $session.mouseControlMode) {
-                    ForEach(MouseControlMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
-                    }
+        ZStack {
+            CDCanvasBackground()
+
+            ScrollView(.vertical) {
+                VStack(spacing: 16) {
+                    serverCard
+                    serverMessages
+                    pointerCard
+                    videoCard
+                    orientationCard
+                    PrivacySettingsCard(session: session)
+                    deviceCard
+                    aboutCard
                 }
-                .pickerStyle(.segmented)
+                .padding(.horizontal, CDTheme.gutter)
+                .padding(.top, 10)
+                .padding(.bottom, 30)
+                .readableContentWidth()
             }
-            Section(NSLocalizedString("画面偏好", comment: "")) {
-                Picker(NSLocalizedString("偏好模式", comment: ""), selection: $session.videoAdaptationPolicy) {
-                    ForEach(VideoAdaptationPolicy.allCases) { policy in
-                        Text(policy.title).tag(policy)
-                    }
-                }
-                .pickerStyle(.segmented)
-            }
-            Section {
-                Toggle(NSLocalizedString("连接建立后锁定横屏", comment: ""), isOn: $session.autoLandscape)
-            } header: {
-                Text(NSLocalizedString("屏幕方向", comment: ""))
-            } footer: {
-                Text(NSLocalizedString("默认关闭。开启后，iPhone 连接时进入并保持横屏；关闭时跟随设备方向。iPad 不受影响。", comment: ""))
-            }
-            Section {
-                DisclosureGroup(isExpanded: $serverConfigurationExpanded) {
-                    Toggle(NSLocalizedString("使用自定义服务器", comment: ""), isOn: $usesCustomServer)
-                    if usesCustomServer {
-                        LabeledContent(NSLocalizedString("地址", comment: "")) {
-                            TextField(NSLocalizedString("填写服务器地址", comment: ""), text: $customServerHost)
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled()
-                                .keyboardType(.URL)
-                                .multilineTextAlignment(.trailing)
-                                .focused($focusedServerField, equals: .host)
-                                .submitLabel(.next)
-                                .onSubmit { focusedServerField = .port }
-                                .accessibilityLabel(NSLocalizedString("服务器地址", comment: ""))
-                        }
-                        LabeledContent(NSLocalizedString("端口", comment: "")) {
-                            TextField(NSLocalizedString("填写端口", comment: ""), text: $customServerPort)
-                                .keyboardType(.numberPad)
-                                .multilineTextAlignment(.trailing)
-                                .focused($focusedServerField, equals: .port)
-                                .accessibilityLabel(NSLocalizedString("服务器端口", comment: ""))
-                        }
-                    }
-                } label: {
-                    HStack {
-                        Text(NSLocalizedString("服务器", comment: ""))
-                        Spacer()
-                        Text(usesCustomServer ? NSLocalizedString("自定义", comment: "") : NSLocalizedString("默认", comment: ""))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            } footer: {
-                if let serverConfigurationError {
-                    Text(serverConfigurationError)
-                        .foregroundStyle(.red)
-                }
-                if let warning = session.identityStorageWarning {
-                    Text(warning)
-                        .foregroundStyle(.orange)
-                }
-                Text(!session.hasNetworkConsent ? NSLocalizedString("完成隐私授权后登记本机身份", comment: "") : session.localIdentity.isEmpty
-                     ? NSLocalizedString("正在获取本机 ID…", comment: "")
-                     : String(format: NSLocalizedString("本机 ID  %1$@", comment: ""), String(describing: session.localIdentity)))
-                    .font(.caption2.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.top, 16)
-                    .textSelection(.enabled)
-            }
-            PrivacySettingsSection(session: session)
-            Section {
-                NavigationLink(NSLocalizedString("本机配对信息", comment: "")) {
-                    DevicePairingView(deviceID: session.localIdentity)
-                }
-            }
-            Section {
-                NavigationLink {
-                    ThirdPartyLicensesView(session: session)
-                } label: {
-                    HStack {
-                        Text(NSLocalizedString("关于", comment: ""))
-                        Spacer()
-                        if appUpdates.updateAvailable {
-                            Text(NSLocalizedString("新版本", comment: "")).foregroundStyle(.secondary)
-                            UpdateDot()
-                        }
-                    }
-                }
-                .accessibilityLabel(appUpdates.updateAvailable ? NSLocalizedString("关于，有新版本", comment: "") : NSLocalizedString("关于", comment: ""))
-            }
+            .scrollDismissesKeyboard(.interactively)
         }
-        .readableContentWidth()
-        .background(Color(.systemGroupedBackground).ignoresSafeArea())
         .navigationTitle(NSLocalizedString("设置", comment: ""))
         .navigationBarTitleDisplayMode(.inline)
-        .scrollDismissesKeyboard(.interactively)
         .background {
             KeyboardDismissTapView {
                 focusedServerField = nil
@@ -1140,6 +1061,215 @@ private struct ServerSettingsView: View {
                     focusedServerField = nil
                 }
             }
+        }
+    }
+
+    // MARK: - Cards
+
+    private var serverCard: some View {
+        CDGroupCard(title: NSLocalizedString("服务器", comment: "")) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    serverConfigurationExpanded.toggle()
+                }
+            } label: {
+                CDSettingRow(title: NSLocalizedString("服务器", comment: ""),
+                             subtitle: usesCustomServer && !customServerHost.isEmpty ? customServerHost : nil,
+                             systemImage: "network",
+                             tint: CDTheme.accent) {
+                    HStack(spacing: 6) {
+                        Text(usesCustomServer ? NSLocalizedString("自定义", comment: "")
+                             : NSLocalizedString("默认", comment: ""))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Image(systemName: serverConfigurationExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+
+            if serverConfigurationExpanded {
+                CDRowDivider()
+                CDSettingRow(title: NSLocalizedString("使用自定义服务器", comment: ""),
+                             systemImage: "slider.horizontal.2.square",
+                             tint: CDTheme.brandEnd) {
+                    Toggle("", isOn: $usesCustomServer)
+                        .labelsHidden()
+                }
+                if usesCustomServer {
+                    CDRowDivider()
+                    serverFieldRow(NSLocalizedString("地址", comment: ""),
+                                   placeholder: NSLocalizedString("填写服务器地址", comment: ""),
+                                   text: $customServerHost,
+                                   field: .host,
+                                   keyboard: .URL)
+                    CDRowDivider()
+                    serverFieldRow(NSLocalizedString("端口", comment: ""),
+                                   placeholder: NSLocalizedString("填写端口", comment: ""),
+                                   text: $customServerPort,
+                                   field: .port,
+                                   keyboard: .numberPad)
+                }
+            }
+        }
+    }
+
+    private func serverFieldRow(_ title: String,
+                                placeholder: String,
+                                text: Binding<String>,
+                                field: ServerField,
+                                keyboard: UIKeyboardType) -> some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .font(.system(size: 15, weight: .medium))
+            Spacer(minLength: 8)
+            TextField(placeholder, text: text)
+                .font(.system(size: 15, design: .monospaced))
+                .keyboardType(keyboard)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .multilineTextAlignment(.trailing)
+                .focused($focusedServerField, equals: field)
+                .accessibilityLabel(title)
+        }
+        .padding(.horizontal, 14)
+        .frame(minHeight: 48)
+    }
+
+    @ViewBuilder
+    private var serverMessages: some View {
+        if let serverConfigurationError {
+            CDBanner(kind: .error, message: serverConfigurationError)
+        }
+        if let warning = session.identityStorageWarning {
+            CDBanner(kind: .warning, message: warning)
+        }
+    }
+
+    private var pointerCard: some View {
+        CDGroupCard(title: NSLocalizedString("鼠标控制", comment: "")) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 12) {
+                    Image(systemName: "computermouse.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 28, height: 28)
+                        .background(
+                            LinearGradient(colors: [CDTheme.accent, CDTheme.accent.opacity(0.72)],
+                                           startPoint: .topLeading,
+                                           endPoint: .bottomTrailing),
+                            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        )
+                    Text(NSLocalizedString("控制模式", comment: ""))
+                        .font(.system(size: 15, weight: .medium))
+                    Spacer(minLength: 0)
+                }
+                Picker(NSLocalizedString("控制模式", comment: ""), selection: $session.mouseControlMode) {
+                    ForEach(MouseControlMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            }
+            .padding(14)
+        }
+    }
+
+    private var videoCard: some View {
+        CDGroupCard(title: NSLocalizedString("画面偏好", comment: "")) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 12) {
+                    Image(systemName: "rectangle.on.rectangle")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 28, height: 28)
+                        .background(
+                            LinearGradient(colors: [CDTheme.brandEnd, CDTheme.brandEnd.opacity(0.72)],
+                                           startPoint: .topLeading,
+                                           endPoint: .bottomTrailing),
+                            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        )
+                    Text(NSLocalizedString("偏好模式", comment: ""))
+                        .font(.system(size: 15, weight: .medium))
+                    Spacer(minLength: 0)
+                }
+                Picker(NSLocalizedString("偏好模式", comment: ""), selection: $session.videoAdaptationPolicy) {
+                    ForEach(VideoAdaptationPolicy.allCases) { policy in
+                        Text(policy.title).tag(policy)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+            }
+            .padding(14)
+        }
+    }
+
+    private var orientationCard: some View {
+        CDGroupCard(title: NSLocalizedString("屏幕方向", comment: ""),
+                    footer: NSLocalizedString("默认关闭。开启后，iPhone 连接时进入并保持横屏；关闭时跟随设备方向。iPad 不受影响。", comment: "")) {
+            CDSettingRow(title: NSLocalizedString("连接建立后锁定横屏", comment: ""),
+                         systemImage: "rectangle.landscape.rotate",
+                         tint: CDTheme.warning) {
+                Toggle("", isOn: $session.autoLandscape)
+                    .labelsHidden()
+            }
+        }
+    }
+
+    private var deviceCard: some View {
+        CDGroupCard(title: localIdentityTitle) {
+            NavigationLink {
+                DevicePairingView(deviceID: session.localIdentity)
+            } label: {
+                CDSettingRow(title: NSLocalizedString("本机配对信息", comment: ""),
+                             systemImage: "qrcode",
+                             tint: CDTheme.brandStart) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var localIdentityTitle: String {
+        if !session.hasNetworkConsent {
+            return NSLocalizedString("完成隐私授权后登记本机身份", comment: "")
+        }
+        return session.localIdentity.isEmpty
+            ? NSLocalizedString("正在获取本机 ID…", comment: "")
+            : String(format: NSLocalizedString("本机 ID  %1$@", comment: ""),
+                     String(describing: session.localIdentity))
+    }
+
+    private var aboutCard: some View {
+        CDGroupCard {
+            NavigationLink {
+                ThirdPartyLicensesView(session: session)
+            } label: {
+                CDSettingRow(title: NSLocalizedString("关于", comment: ""),
+                             systemImage: "info.circle.fill",
+                             tint: CDTheme.accent) {
+                    HStack(spacing: 6) {
+                        if appUpdates.updateAvailable {
+                            Text(NSLocalizedString("新版本", comment: ""))
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                            UpdateDot()
+                        }
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(appUpdates.updateAvailable ? NSLocalizedString("关于，有新版本", comment: "") : NSLocalizedString("关于", comment: ""))
         }
     }
 

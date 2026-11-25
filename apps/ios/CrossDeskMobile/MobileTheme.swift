@@ -18,7 +18,8 @@ enum CDTheme {
     static let accent = Color(red: 0.22, green: 0.44, blue: 0.93)
 
     /// Page background. Slightly cool so white cards read as raised surfaces.
-    static let canvas = Color(red: 0.956, green: 0.962, blue: 0.976)
+    static let canvasTop = Color(red: 0.925, green: 0.933, blue: 0.960)
+    static let canvas = Color(red: 0.949, green: 0.953, blue: 0.972)
     static let card = Color.white
     static let cardMuted = Color(red: 0.973, green: 0.976, blue: 0.984)
 
@@ -105,21 +106,133 @@ extension View {
     }
 }
 
-/// Page background: flat canvas plus two very soft brand glows.
+/// Page background: cool canvas plus two soft brand glows.
 struct CDCanvasBackground: View {
     var body: some View {
         ZStack {
-            CDTheme.canvas
-            RadialGradient(colors: [CDTheme.accent.opacity(0.13), .clear],
+            LinearGradient(colors: [CDTheme.canvasTop, CDTheme.canvas, CDTheme.canvas],
+                           startPoint: .top,
+                           endPoint: .bottom)
+            RadialGradient(colors: [CDTheme.accent.opacity(0.20), .clear],
                            center: .topLeading,
                            startRadius: 10,
-                           endRadius: 420)
-            RadialGradient(colors: [CDTheme.brandEnd.opacity(0.10), .clear],
+                           endRadius: 460)
+            RadialGradient(colors: [CDTheme.brandEnd.opacity(0.16), .clear],
                            center: .topTrailing,
                            startRadius: 10,
-                           endRadius: 380)
+                           endRadius: 420)
         }
         .ignoresSafeArea()
+    }
+}
+
+// MARK: - Grouped settings cards
+
+/// Rounded container for a vertical list of rows. Rows are separated with a
+/// leading-inset divider so the icon column keeps an unbroken rail.
+struct CDGroupCard<Content: View>: View {
+    var title: String?
+    var footer: String?
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let title {
+                Text(title)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 6)
+            }
+            VStack(spacing: 0) {
+                content()
+            }
+            .background(CDTheme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(CDTheme.stroke, lineWidth: 1)
+            }
+            .shadow(color: Color.black.opacity(0.05), radius: 14, x: 0, y: 6)
+            if let footer {
+                Text(footer)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 6)
+            }
+        }
+    }
+}
+
+/// Row with a coloured icon tile, a title (and optional subtitle) and a
+/// trailing accessory.
+struct CDSettingRow<Trailing: View>: View {
+    let title: String
+    var subtitle: String?
+    var systemImage: String?
+    var tint: Color = CDTheme.accent
+    var titleColor: Color = .primary
+    @ViewBuilder var trailing: () -> Trailing
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 28, height: 28)
+                    .background(
+                        LinearGradient(colors: [tint, tint.opacity(0.72)],
+                                       startPoint: .topLeading,
+                                       endPoint: .bottomTrailing),
+                        in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    )
+            }
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(titleColor)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 10)
+            trailing()
+        }
+        .padding(.horizontal, 14)
+        .frame(minHeight: 50)
+    }
+}
+
+extension CDSettingRow where Trailing == EmptyView {
+    init(title: String, subtitle: String? = nil, systemImage: String? = nil,
+         tint: Color = CDTheme.accent, titleColor: Color = .primary) {
+        self.init(title: title, subtitle: subtitle, systemImage: systemImage,
+                  tint: tint, titleColor: titleColor) { EmptyView() }
+    }
+}
+
+/// Divider aligned with the row text column.
+struct CDRowDivider: View {
+    var inset: CGFloat = 54
+
+    var body: some View {
+        Divider()
+            .padding(.leading, inset)
+    }
+}
+
+/// Title above a grouped card, used for the segmented controls.
+struct CDCardLabel: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .padding(.leading, 6)
     }
 }
 
