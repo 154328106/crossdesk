@@ -1166,13 +1166,9 @@ private struct ServerSettingsView: View {
                         .font(.system(size: 15, weight: .medium))
                     Spacer(minLength: 0)
                 }
-                Picker(NSLocalizedString("控制模式", comment: ""), selection: $session.mouseControlMode) {
-                    ForEach(MouseControlMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+                CDSegmented(items: MouseControlMode.allCases,
+                            label: { $0.title },
+                            selection: $session.mouseControlMode)
             }
             .padding(14)
         }
@@ -1196,13 +1192,9 @@ private struct ServerSettingsView: View {
                         .font(.system(size: 15, weight: .medium))
                     Spacer(minLength: 0)
                 }
-                Picker(NSLocalizedString("偏好模式", comment: ""), selection: $session.videoAdaptationPolicy) {
-                    ForEach(VideoAdaptationPolicy.allCases) { policy in
-                        Text(policy.title).tag(policy)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+                CDSegmented(items: VideoAdaptationPolicy.allCases,
+                            label: { $0.title },
+                            selection: $session.videoAdaptationPolicy)
             }
             .padding(14)
         }

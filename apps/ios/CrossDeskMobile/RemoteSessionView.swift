@@ -1211,13 +1211,19 @@ private struct FloatingSessionMenu: View {
             panel(scrolls: true)
         }
         .padding(12)
-        .background(Color.white,
-                    in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color(.separator).opacity(0.24), lineWidth: 1)
+        .background {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(Color.white.opacity(0.30))
+                }
         }
-        .shadow(color: .black.opacity(0.34), radius: 18, y: 7)
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.55), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.30), radius: 22, y: 10)
         .environment(\.colorScheme, .light)
         .task(id: session.selectedDisplay) {
             // This task survives ordinary video-frame redraws and is cancelled
@@ -1351,17 +1357,6 @@ private struct FloatingSessionMenu: View {
                     }
                     FloatingControlButton(title: NSLocalizedString("剪贴板", comment: ""), symbol: "doc.on.clipboard",
                                           action: session.sendClipboard)
-                    if UIDevice.current.userInterfaceIdiom != .pad {
-                        FloatingControlButton(
-                            title: fullscreen ? NSLocalizedString("退出全屏", comment: "")
-                                : NSLocalizedString("全屏", comment: ""),
-                            symbol: fullscreen ? "rectangle.portrait.rotate"
-                                : "rectangle.landscape.rotate",
-                            selected: fullscreen,
-                            action: toggleFullscreen
-                        )
-                        .accessibilityHint(NSLocalizedString("点一下横屏观看，再点还原屏幕方向", comment: ""))
-                    }
                     if session.privacyScreen.desktopAvailable {
                         FloatingControlButton(
                             title: session.privacyScreen.buttonTitle(at: session.privacyClock),
@@ -1374,6 +1369,17 @@ private struct FloatingSessionMenu: View {
                         .accessibilityLabel(NSLocalizedString("隐私屏", comment: ""))
                         .accessibilityValue(session.privacyScreen.status(at: session.privacyClock))
                         .accessibilityHint(session.privacyScreen.active ? NSLocalizedString("关闭隐私屏", comment: "") : NSLocalizedString("开启隐私屏", comment: ""))
+                    }
+                    if UIDevice.current.userInterfaceIdiom != .pad {
+                        FloatingControlButton(
+                            title: fullscreen ? NSLocalizedString("退出全屏", comment: "")
+                                : NSLocalizedString("全屏", comment: ""),
+                            symbol: fullscreen ? "arrow.down.right.and.arrow.up.left"
+                                : "arrow.up.left.and.arrow.down.right",
+                            selected: fullscreen,
+                            action: toggleFullscreen
+                        )
+                        .accessibilityHint(NSLocalizedString("点一下横屏观看，再点还原屏幕方向", comment: ""))
                     }
                 }
 

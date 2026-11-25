@@ -83,12 +83,12 @@ private struct CDCardModifier: ViewModifier {
                         // A whisper of white keeps the frosted surface luminous
                         // over the tinted canvas instead of going grey.
                         RoundedRectangle(cornerRadius: radius, style: .continuous)
-                            .fill(Color.white.opacity(0.34))
+                            .fill(Color.white.opacity(0.16))
                     }
             }
             .overlay {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.62), lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.52), lineWidth: 1)
             }
             .shadow(color: Color.black.opacity(elevated ? 0.08 : 0.04),
                     radius: elevated ? 22 : 12,
@@ -107,11 +107,11 @@ extension View {
 
     /// Inset field/segment background used inside cards.
     func cdInset(radius: CGFloat = CDTheme.innerRadius) -> some View {
-        background(Color.white.opacity(0.62),
+        background(Color.white.opacity(0.44),
                    in: RoundedRectangle(cornerRadius: radius, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.55), lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.5), lineWidth: 1)
             }
     }
 }
@@ -161,12 +161,12 @@ struct CDGroupCard<Content: View>: View {
                     .fill(.ultraThinMaterial)
                     .overlay {
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(Color.white.opacity(0.34))
+                            .fill(Color.white.opacity(0.16))
                     }
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(Color.white.opacity(0.62), lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.52), lineWidth: 1)
             }
             .shadow(color: Color.black.opacity(0.06), radius: 18, x: 0, y: 8)
             if let footer {
@@ -304,10 +304,17 @@ struct CDIconTile: View {
             .font(.system(size: size * 0.45, weight: .semibold))
             .foregroundStyle(CDTheme.accent)
             .frame(width: size, height: size)
-            .background(CDTheme.card, in: RoundedRectangle(cornerRadius: size * 0.32, style: .continuous))
+            .background {
+                RoundedRectangle(cornerRadius: size * 0.32, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: size * 0.32, style: .continuous)
+                            .fill(Color.white.opacity(0.20))
+                    }
+            }
             .overlay {
                 RoundedRectangle(cornerRadius: size * 0.32, style: .continuous)
-                    .strokeBorder(CDTheme.stroke, lineWidth: 1)
+                    .strokeBorder(Color.white.opacity(0.52), lineWidth: 1)
             }
             .overlay(alignment: .topTrailing) {
                 if let badgeText {
@@ -317,16 +324,69 @@ struct CDIconTile: View {
                         .padding(.horizontal, 4)
                         .frame(minWidth: 16, minHeight: 16)
                         .background(CDTheme.danger, in: Capsule())
-                        .overlay(Capsule().strokeBorder(CDTheme.card, lineWidth: 1.2))
+                        .overlay(Capsule().strokeBorder(Color.white.opacity(0.85), lineWidth: 1.2))
                         .offset(x: 5, y: -4)
                 } else if showsDot {
                     Circle()
                         .fill(CDTheme.danger)
                         .frame(width: 9, height: 9)
-                        .overlay(Circle().strokeBorder(CDTheme.card, lineWidth: 1.2))
+                        .overlay(Circle().strokeBorder(Color.white, lineWidth: 1.2))
                         .offset(x: 2, y: -2)
                 }
             }
+    }
+}
+
+/// Frosted segmented control that matches the rest of the card surfaces.
+struct CDSegmented<Option: Hashable>: View {
+    let items: [Option]
+    let label: (Option) -> String
+    @Binding var selection: Option
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(items, id: \.self) { item in
+                let isSelected = item == selection
+                Button {
+                    withAnimation(.easeOut(duration: 0.16)) {
+                        selection = item
+                    }
+                } label: {
+                    Text(label(item))
+                        .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                        .foregroundStyle(isSelected ? Color.primary : Color.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 36)
+                        .background {
+                            if isSelected {
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .fill(.ultraThinMaterial)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(Color.white.opacity(0.55))
+                                    }
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .strokeBorder(Color.white.opacity(0.75), lineWidth: 1)
+                                    }
+                                    .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
+                            }
+                        }
+                        .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(3)
+        .background(Color.white.opacity(0.24),
+                    in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.45), lineWidth: 1)
+        }
     }
 }
 

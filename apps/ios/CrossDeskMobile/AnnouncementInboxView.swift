@@ -203,8 +203,8 @@ struct AnnouncementInboxView: View {
                 RoundedRectangle(cornerRadius: CDTheme.cardRadius, style: .continuous)
                     .fill(.ultraThinMaterial)
                 RoundedRectangle(cornerRadius: CDTheme.cardRadius, style: .continuous)
-                    .fill(LinearGradient(colors: [CDTheme.accent.opacity(0.20),
-                                                  CDTheme.brandEnd.opacity(0.12)],
+                    .fill(LinearGradient(colors: [CDTheme.accent.opacity(0.17),
+                                                  CDTheme.brandEnd.opacity(0.10)],
                                          startPoint: .topLeading,
                                          endPoint: .bottomTrailing))
             }
