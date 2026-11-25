@@ -367,3 +367,8 @@
 "IP 直连失败，请检查电脑的直连地址和网络。" = "Falha na conexão IP direta. Verifique o endereço, a porta e a rede do computador.";
 "本端地址" = "Endereço local";
 "对端地址" = "Endereço remoto";
+"全部" = "Todos";
+"清除全部" = "Limpar tudo";
+"清除全部公告？" = "Limpar todos os comunicados?";
+"将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。" = "Remove os comunicados salvos neste dispositivo. O servidor não é alterado e novos comunicados continuam chegando.";
+"连接服务器后可获取最新公告。" = "Conecte-se ao servidor para obter os anúncios mais recentes.";

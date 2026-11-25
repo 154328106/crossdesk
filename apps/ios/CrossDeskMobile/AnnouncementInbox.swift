@@ -174,6 +174,28 @@ final class AnnouncementInbox: ObservableObject {
         saveReads(updated)
     }
 
+    /// Hides every announcement in the current catalog on this device.
+    /// Reading state is untouched, so a re-published revision shows up again.
+    func dismissAll() {
+        guard !catalog.isEmpty else { return }
+        var updated = dismissed
+        var changed = false
+        for (id, revision) in catalog where updated[id] != revision {
+            updated[id] = revision
+            changed = true
+        }
+        guard changed else { return }
+        guard saveLocalState(reads: reads, dismissed: updated) else {
+            state.deleteFailed = true
+            return
+        }
+        dismissed = updated
+        state.deleteFailed = false
+        state.readSaveFailed = false
+        cancelRequest()
+        rebuildVisibleItems()
+    }
+
     private func saveReads(_ updated: [Int64: Int64]) {
         guard saveLocalState(reads: updated, dismissed: dismissed) else {
             state.readSaveFailed = true

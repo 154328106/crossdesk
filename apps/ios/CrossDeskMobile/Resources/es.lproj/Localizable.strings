@@ -367,3 +367,8 @@
 "IP 直连失败，请检查电脑的直连地址和网络。" = "Error de conexión IP directa. Comprueba la dirección, el puerto y la red del equipo.";
 "本端地址" = "Dirección local";
 "对端地址" = "Dirección remota";
+"全部" = "Todos";
+"清除全部" = "Borrar todo";
+"清除全部公告？" = "¿Borrar todos los anuncios?";
+"将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。" = "Elimina los anuncios guardados en este dispositivo. El servidor no se modifica y los nuevos anuncios seguirán llegando.";
+"连接服务器后可获取最新公告。" = "Conéctese al servidor para obtener los últimos anuncios.";

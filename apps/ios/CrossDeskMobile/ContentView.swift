@@ -195,7 +195,6 @@ private struct ConnectionHomeView: View {
     @State private var groupDevice: RecentConnection?
 
     private let connectionAccent = Color(red: 0.18, green: 0.48, blue: 0.86)
-    private let connectionAccentEnd = Color(red: 0.12, green: 0.38, blue: 0.78)
 
     private var trimmedRemoteID: String {
         session.remoteID.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -256,7 +255,7 @@ private struct ConnectionHomeView: View {
 
     var body: some View {
         ZStack {
-            Color(.systemGroupedBackground).ignoresSafeArea()
+            CDCanvasBackground()
 
             GeometryReader { proxy in
                 let isWide = proxy.size.width >= MobileLayout.twoColumnBreakpoint
@@ -267,20 +266,24 @@ private struct ConnectionHomeView: View {
                     : AnyLayout(VStackLayout(spacing: 20))
 
                 ScrollView(.vertical) {
-                    layout {
-                        remoteConnectionPanel
-                            .frame(width: isWide ? 360 : nil)
-                        recentConnectionsPanel(windowWidth: proxy.size.width)
-                            .frame(maxHeight: .infinity)
+                    VStack(spacing: 16) {
+                        homeHeader
+
+                        layout {
+                            remoteConnectionPanel
+                                .frame(width: isWide ? 360 : nil)
+                            recentConnectionsPanel(windowWidth: proxy.size.width)
+                                .frame(maxHeight: .infinity)
+                        }
+                        // Short multitasking windows and the onscreen keyboard
+                        // must not squeeze the recent list below a usable height.
+                        .frame(height: max(isWide ? 260 : 420, proxy.size.height - 136),
+                               alignment: .top)
                     }
                     .frame(maxWidth: MobileLayout.homeMaximumWidth)
-                    // Short multitasking windows and the onscreen keyboard
-                    // must not squeeze the recent list below a usable height.
-                    .frame(height: max(isWide ? 260 : 420, proxy.size.height - 36),
-                           alignment: .top)
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, 20)
-                    .padding(.top, 24)
+                    .padding(.top, 8)
                     .padding(.bottom, 12)
                 }
                 .scrollDismissesKeyboard(.interactively)
@@ -341,6 +344,28 @@ private struct ConnectionHomeView: View {
         .onDisappear { remoteIDFocused = false }
     }
 
+    private var homeHeader: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(verbatim: "CrossDesk")
+                    .font(.system(size: 27, weight: .bold, design: .rounded))
+                    .foregroundStyle(CDTheme.brandGradient)
+                Text(NSLocalizedString("远程桌面", comment: ""))
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 8)
+            if !session.recentConnections.isEmpty {
+                CDPill(text: String(format: NSLocalizedString("%1$@ 台设备", comment: ""),
+                                    String(session.recentConnections.count)),
+                       systemImage: "desktopcomputer",
+                       tint: CDTheme.accent)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+    }
+
     @ToolbarContentBuilder
     private var navigationToolbar: some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
@@ -368,25 +393,8 @@ private struct ConnectionHomeView: View {
         }
         ToolbarItem(placement: .navigationBarTrailing) {
             NavigationLink(value: HomeDestination.settings) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 18, weight: .semibold))
-                    .frame(width: 40, height: 40)
-                    .background(Color(.secondarySystemGroupedBackground),
-                                in: RoundedRectangle(cornerRadius: 10,
-                                                     style: .continuous))
-                    .overlay(alignment: .topTrailing) {
-                        if appUpdates.updateAvailable {
-                            Text("!")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
-                                .frame(width: 16, height: 16)
-                                .background(.red, in: Circle())
-                                .offset(x: 5, y: -3)
-                                .accessibilityHidden(true)
-                        }
-                    }
+                CDIconTile(systemImage: "gearshape", showsDot: appUpdates.updateAvailable)
             }
-            .foregroundStyle(.primary)
             .disabled(session.isConnecting)
             .accessibilityLabel(appUpdates.updateAvailable ? NSLocalizedString("设置，有新版本", comment: "") : NSLocalizedString("设置", comment: ""))
         }
@@ -420,70 +428,56 @@ private struct ConnectionHomeView: View {
     }
 
     private var remoteConnectionPanel: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text(NSLocalizedString("远程桌面", comment: ""))
-                    .font(.title3.weight(.bold))
-                Spacer()
-            }
-
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
-                TextField(NSLocalizedString("设备 ID 或 IP 地址", comment: ""), text: groupedRemoteID)
-                    .keyboardType(.asciiCapable)
-                    .textContentType(.username)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .font(.system(.title3, design: .rounded).weight(.semibold))
-                    .monospacedDigit()
-                    .focused($remoteIDFocused)
-                    .padding(.horizontal, 15)
-                    .frame(height: 54)
-                    .background(Color(.systemGroupedBackground),
-                                in: RoundedRectangle(cornerRadius: 12,
-                                                     style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(remoteIDFocused
-                                    ? connectionAccent
-                                    : Color(.separator).opacity(0.4),
-                                    lineWidth: remoteIDFocused ? 2 : 1)
-                    }
-                    .shadow(color: remoteIDFocused
-                            ? connectionAccent.opacity(0.12) : .clear,
-                            radius: 8, y: 2)
+                HStack(spacing: 9) {
+                    Image(systemName: "link")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(remoteIDFocused ? CDTheme.accent : Color.secondary)
+                    TextField(NSLocalizedString("设备 ID 或 IP 地址", comment: ""), text: groupedRemoteID)
+                        .keyboardType(.asciiCapable)
+                        .textContentType(.username)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .font(.system(.title3, design: .rounded).weight(.semibold))
+                        .monospacedDigit()
+                        .focused($remoteIDFocused)
+                }
+                .padding(.horizontal, 14)
+                .frame(height: 54)
+                .cdInset(radius: 16)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(remoteIDFocused ? CDTheme.accent : Color.clear,
+                                      lineWidth: 1.6)
+                }
+                .shadow(color: remoteIDFocused ? CDTheme.accent.opacity(0.14) : .clear,
+                        radius: 10, x: 0, y: 3)
 
                 Button {
                     presentPasswordPrompt(for: trimmedRemoteID)
                 } label: {
                     Text(NSLocalizedString("连接", comment: ""))
-                        .font(.system(size: 16, weight: .bold))
                         .lineLimit(1)
-                        .minimumScaleFactor(0.65)
-                        .frame(width: 96, height: 54)
-                        .foregroundStyle(.white)
-                        .background(LinearGradient(colors: [
-                            connectionAccent,
-                            connectionAccentEnd
-                        ], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        .clipShape(RoundedRectangle(cornerRadius: 12,
-                                                    style: .continuous))
-                        .shadow(color: connectionAccent.opacity(0.24),
-                                radius: 8, y: 4)
+                        .minimumScaleFactor(0.7)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(CDPrimaryButtonStyle(height: 54, radius: 16))
+                .frame(width: 104)
                 .disabled(trimmedRemoteID.isEmpty || session.isConnecting)
-                .opacity(trimmedRemoteID.isEmpty || session.isConnecting ? 0.45 : 1)
                 .accessibilityLabel(NSLocalizedString("连接", comment: ""))
             }
+
+            HStack(spacing: 6) {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 11, weight: .semibold))
+                Text(NSLocalizedString("请输入设备 ID 或有效的 IP 地址", comment: ""))
+                    .font(.caption)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .foregroundStyle(.tertiary)
         }
-        .padding(18)
-        .background(Color(.secondarySystemGroupedBackground),
-                    in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color(.separator).opacity(0.28), lineWidth: 1)
-        }
-        .shadow(color: .black.opacity(0.055), radius: 14, y: 5)
+        .cdCard(padding: 16)
     }
 
     private var recentGroupPicker: some View {
@@ -517,48 +511,33 @@ private struct ConnectionHomeView: View {
     @ViewBuilder
     private func recentConnectionsPanel(windowWidth: CGFloat) -> some View {
         let connections = orderedRecentConnections
-        let title = Text(NSLocalizedString("最近连接", comment: "")).font(.title3.bold())
+        let countText = String(format: NSLocalizedString("%1$@ 台设备", comment: ""),
+                               String(connections.count))
         VStack(alignment: .leading, spacing: 14) {
             if session.recentConnections.isEmpty {
-                title
+                CDSectionTitle(title: NSLocalizedString("最近连接", comment: ""))
             } else {
-                let count = Text(String(format: NSLocalizedString("%1$@ 台设备", comment: ""), String(connections.count)))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline) {
-                        title
-                        Spacer(minLength: 8)
-                        count
+                    CDSectionTitle(title: NSLocalizedString("最近连接", comment: ""),
+                                   subtitle: countText) {
                         recentGroupPicker
                     }
-                    VStack(alignment: .trailing, spacing: 4) {
-                        HStack(alignment: .firstTextBaseline) {
-                            title
-                            Spacer(minLength: 8)
-                            count
-                        }
+                    VStack(alignment: .leading, spacing: 4) {
+                        CDSectionTitle(title: NSLocalizedString("最近连接", comment: ""),
+                                       subtitle: countText)
                         recentGroupPicker
                     }
                 }
             }
 
             if session.recentConnections.isEmpty {
-                VStack(spacing: 10) {
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.system(size: 30, weight: .medium))
-                        .foregroundStyle(.tertiary)
-                    Text(NSLocalizedString("还没有连接记录", comment: ""))
-                        .font(.headline)
-                    Text(NSLocalizedString("成功连接后，这里会显示远端桌面的缩略图。", comment: ""))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                CDEmptyState(systemImage: "clock.arrow.circlepath",
+                             title: NSLocalizedString("还没有连接记录", comment: ""),
+                             message: NSLocalizedString("成功连接后，这里会显示远端桌面的缩略图。", comment: ""))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if connections.isEmpty {
-                Text(NSLocalizedString("该分组暂无近期连接", comment: ""))
-                    .foregroundStyle(.secondary)
+                CDEmptyState(systemImage: "folder",
+                             title: NSLocalizedString("该分组暂无近期连接", comment: ""))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView(.vertical) {
@@ -583,14 +562,8 @@ private struct ConnectionHomeView: View {
                 }
             }
         }
-        .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color(.secondarySystemGroupedBackground),
-                    in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color(.separator).opacity(0.35), lineWidth: 1)
-        }
+        .cdCard(padding: 16)
     }
 
     private var connectionProgressOverlay: some View {
@@ -602,6 +575,16 @@ private struct ConnectionHomeView: View {
 
             VStack(spacing: 0) {
                 VStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(CDTheme.accent.opacity(0.12))
+                            .frame(width: 58, height: 58)
+                        Image(systemName: "display")
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundStyle(CDTheme.brandGradient)
+                    }
+                    .accessibilityHidden(true)
+
                     ProgressView()
                         .controlSize(.large)
                         .tint(connectionAccent)
@@ -701,65 +684,72 @@ private struct RecentConnectionCard: View {
     @State private var renaming = false
     @State private var nameDraft = ""
 
-    private var platformColors: [Color] {
-        switch connection.platform {
-        case .windows:
-            return [Color(red: 0.12, green: 0.38, blue: 0.70),
-                    Color(red: 0.20, green: 0.48, blue: 0.77)]
-        case .linux:
-            return [Color(red: 0.63, green: 0.31, blue: 0.08),
-                    Color(red: 0.73, green: 0.39, blue: 0.12)]
-        case .macos:
-            return [Color(red: 0.43, green: 0.29, blue: 0.68),
-                    Color(red: 0.55, green: 0.39, blue: 0.77)]
-        case .ios:
-            return [Color(red: 0.08, green: 0.43, blue: 0.40),
-                    Color(red: 0.12, green: 0.51, blue: 0.47)]
-        case .unknown:
-            return [Color(red: 0.35, green: 0.40, blue: 0.46),
-                    Color(red: 0.45, green: 0.49, blue: 0.55)]
-        }
+    private var platformGradient: LinearGradient {
+        LinearGradient(colors: CDTheme.platformGradient(for: connection.platform),
+                       startPoint: .topLeading,
+                       endPoint: .bottomTrailing)
+    }
+
+    private var isDirectAddress: Bool { connection.remoteID.contains(":") }
+
+    private var statusText: String {
+        if isDirectAddress { return "IP" }
+        return online ? NSLocalizedString("在线", comment: "") : NSLocalizedString("离线", comment: "")
     }
 
     var body: some View {
         Button(action: connect) {
             VStack(alignment: .leading, spacing: 0) {
-                ZStack {
-                    if let thumbnail {
-                        Image(uiImage: thumbnail)
-                            .resizable()
-                            .scaledToFill()
-                    } else {
-                        LinearGradient(colors: platformColors,
-                                       startPoint: .topLeading,
-                                       endPoint: .bottomTrailing)
-                        Text(connection.platform.displayName)
-                            .font(.title3.weight(.semibold))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.8)
-                            .foregroundStyle(.white)
-                            .padding(8)
-                            .accessibilityLabel(String(format: NSLocalizedString("被控端平台：%1$@", comment: ""), String(describing: connection.platform.displayName)))
+                ZStack(alignment: .bottomLeading) {
+                    Group {
+                        if let thumbnail {
+                            Image(uiImage: thumbnail)
+                                .resizable()
+                                .scaledToFill()
+                        } else {
+                            platformGradient
+                            Text(connection.platform.displayName)
+                                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                                .foregroundStyle(.white)
+                                .padding(10)
+                                .accessibilityLabel(String(format: NSLocalizedString("被控端平台：%1$@", comment: ""), String(describing: connection.platform.displayName)))
+                        }
                     }
-                }
-                .frame(maxWidth: .infinity)
-                .aspectRatio(16 / 9, contentMode: .fit)
-                .clipped()
+                    .frame(maxWidth: .infinity)
+                    .aspectRatio(16 / 10, contentMode: .fit)
+                    .clipped()
 
-                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(online ? CDTheme.success : Color.white.opacity(0.7))
+                            .frame(width: 6, height: 6)
+                        Text(statusText)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.black.opacity(0.42), in: Capsule())
+                    .padding(8)
+                    .accessibilityHidden(true)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
                     Text(connection.displayName)
-                        .font(.caption.weight(.semibold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
                     if !connection.groups.isEmpty {
                         Text(connection.groups.joined(separator: " · "))
-                            .font(.caption2)
+                            .font(.system(size: 10))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
                     HStack(spacing: 5) {
-                        Text(connection.remoteID.contains(":") ? connection.remoteID : "ID \(connection.remoteID)")
-                            .font(.caption2.monospacedDigit())
+                        Text(isDirectAddress ? connection.remoteID : "ID \(connection.remoteID)")
+                            .font(.system(size: 11, design: .monospaced))
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                         Spacer(minLength: 4)
@@ -769,34 +759,28 @@ private struct RecentConnectionCard: View {
                                 .foregroundStyle(.secondary)
                                 .accessibilityLabel(NSLocalizedString("已保存密码", comment: ""))
                         }
-                        Text(connection.remoteID.contains(":") ? "IP" : online ? NSLocalizedString("在线", comment: "") : NSLocalizedString("离线", comment: ""))
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(online ? Color.green : Color.secondary)
-                            .accessibilityLabel(connection.remoteID.contains(":") ? "IP" : online ? NSLocalizedString("在线", comment: "") : NSLocalizedString("离线", comment: ""))
                     }
                 }
-                .padding(9)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 9)
             }
-            .background(Color(.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(CDTheme.card)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(Color(.separator).opacity(0.35), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(CDTheme.stroke, lineWidth: 1)
             }
+            .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 5)
         }
         .buttonStyle(.plain)
         .contextMenu { actions }
         .overlay(alignment: .topTrailing) {
             Menu { actions } label: {
                 Image(systemName: "ellipsis")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(Color(uiColor: .label))
-                    .padding(.horizontal, 6)
-                    .frame(minWidth: 26, minHeight: 17)
-                    .background(Color(uiColor: .secondarySystemBackground), in: Capsule())
-                    .overlay {
-                        Capsule().strokeBorder(Color(uiColor: .separator), lineWidth: 0.75)
-                    }
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 24, height: 24)
+                    .background(Color.black.opacity(0.42), in: Circle())
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -807,7 +791,7 @@ private struct RecentConnectionCard: View {
             Button(NSLocalizedString("取消", comment: ""), role: .cancel) {}
             Button(NSLocalizedString("保存", comment: "")) { rename(nameDraft) }
         } message: {
-            Text(connection.remoteID.contains(":") ? connection.remoteID : "ID \(connection.remoteID)")
+            Text(isDirectAddress ? connection.remoteID : "ID \(connection.remoteID)")
         }
     }
 
@@ -959,13 +943,9 @@ private struct PasswordPromptView: View {
 
             Button(action: connect) {
                 Text(NSLocalizedString("连接", comment: ""))
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
             }
             .disabled(remoteID.contains(":") && password.range(of: "^[A-Za-z0-9]{6}$", options: .regularExpression) == nil)
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.roundedRectangle(radius: 10))
+            .buttonStyle(CDPrimaryButtonStyle(height: 48, radius: 14))
         }
         .padding(22)
         .onAppear {

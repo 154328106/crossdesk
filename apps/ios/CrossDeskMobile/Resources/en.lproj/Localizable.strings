@@ -367,3 +367,8 @@
 "IP 直连失败，请检查电脑的直连地址和网络。" = "Direct IP connection failed. Check the computer’s direct IP address, port, and network.";
 "本端地址" = "Local endpoint";
 "对端地址" = "Remote endpoint";
+"全部" = "All";
+"清除全部" = "Clear all";
+"清除全部公告？" = "Clear all announcements?";
+"将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。" = "Removes the announcements stored on this device. The server is untouched and new announcements still arrive.";
+"连接服务器后可获取最新公告。" = "Connect to the server to get the latest announcements.";

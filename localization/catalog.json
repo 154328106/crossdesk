@@ -11891,6 +11891,54 @@
       "fr": "Adresse distante",
       "es": "Dirección remota",
       "pt-BR": "Endereço remoto"
+    },
+    "全部": {
+      "zh-Hans": "全部",
+      "en": "All",
+      "ru": "Все",
+      "zh-Hant": "全部",
+      "ja": "すべて",
+      "ko": "전체",
+      "de": "Alle",
+      "fr": "Tous",
+      "es": "Todos",
+      "pt-BR": "Todos"
+    },
+    "清除全部": {
+      "zh-Hans": "清除全部",
+      "en": "Clear all",
+      "ru": "Очистить всё",
+      "zh-Hant": "清除全部",
+      "ja": "すべて消去",
+      "ko": "모두 지우기",
+      "de": "Alle löschen",
+      "fr": "Tout effacer",
+      "es": "Borrar todo",
+      "pt-BR": "Limpar tudo"
+    },
+    "清除全部公告？": {
+      "zh-Hans": "清除全部公告？",
+      "en": "Clear all announcements?",
+      "ru": "Очистить все объявления?",
+      "zh-Hant": "清除全部公告？",
+      "ja": "お知らせをすべて消去しますか？",
+      "ko": "모든 공지를 지울까요?",
+      "de": "Alle Mitteilungen löschen?",
+      "fr": "Effacer toutes les annonces ?",
+      "es": "¿Borrar todos los anuncios?",
+      "pt-BR": "Limpar todos os comunicados?"
+    },
+    "将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。": {
+      "zh-Hans": "将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。",
+      "en": "Removes the announcements stored on this device. The server is untouched and new announcements still arrive.",
+      "ru": "Удаляет объявления, сохранённые на этом устройстве. Сервер не затрагивается, новые объявления продолжат приходить.",
+      "zh-Hant": "將清除本機儲存的公告記錄，伺服器不受影響，之後仍會收到新公告。",
+      "ja": "このデバイスに保存されたお知らせを消去します。サーバーには影響せず、新しいお知らせは引き続き届きます。",
+      "ko": "이 기기에 저장된 공지를 지웁니다. 서버는 영향을 받지 않으며 새 공지는 계속 수신됩니다.",
+      "de": "Entfernt die auf diesem Gerät gespeicherten Mitteilungen. Der Server bleibt unberührt, neue Mitteilungen kommen weiterhin an.",
+      "fr": "Supprime les annonces enregistrées sur cet appareil. Le serveur n'est pas modifié et les nouvelles annonces continuent d'arriver.",
+      "es": "Elimina los anuncios guardados en este dispositivo. El servidor no se modifica y los nuevos anuncios seguirán llegando.",
+      "pt-BR": "Remove os comunicados salvos neste dispositivo. O servidor não é alterado e novos comunicados continuam chegando."
     }
   },
   "desktop": {
@@ -13729,7 +13777,12 @@
       "IP 直连密码",
       "IP 直连失败，请检查电脑的直连地址和网络。",
       "本端地址",
-      "对端地址"
+      "对端地址",
+      "全部",
+      "清除全部",
+      "清除全部公告？",
+      "将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。",
+      "连接服务器后可获取最新公告。"
     ],
     "harmony": [
       "OpenFEC 告知",
