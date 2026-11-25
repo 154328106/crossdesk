@@ -11939,6 +11939,18 @@
       "fr": "Supprime les annonces enregistrées sur cet appareil. Le serveur n'est pas modifié et les nouvelles annonces continuent d'arriver.",
       "es": "Elimina los anuncios guardados en este dispositivo. El servidor no se modifica y los nuevos anuncios seguirán llegando.",
       "pt-BR": "Remove os comunicados salvos neste dispositivo. O servidor não é alterado e novos comunicados continuam chegando."
+    },
+    "隐藏所有浮动控件，只看远程画面": {
+      "zh-Hans": "隐藏所有浮动控件，只看远程画面",
+      "en": "Hides every floating control and keeps only the remote screen",
+      "ru": "Скрывает все плавающие элементы управления, оставляя только удалённый экран",
+      "zh-Hant": "隱藏所有浮動控制項，只看遠端畫面",
+      "ja": "フローティングコントロールをすべて隠してリモート画面だけを表示します",
+      "ko": "모든 플로팅 컨트롤을 숨기고 원격 화면만 표시합니다",
+      "de": "Blendet alle schwebenden Bedienelemente aus und zeigt nur den entfernten Bildschirm",
+      "fr": "Masque tous les contrôles flottants pour ne garder que l'écran distant",
+      "es": "Oculta todos los controles flotantes y deja solo la pantalla remota",
+      "pt-BR": "Oculta todos os controles flutuantes e deixa apenas a tela remota"
     }
   },
   "desktop": {
@@ -13782,7 +13794,10 @@
       "清除全部",
       "清除全部公告？",
       "将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。",
-      "连接服务器后可获取最新公告。"
+      "连接服务器后可获取最新公告。",
+      "全屏",
+      "退出全屏",
+      "隐藏所有浮动控件，只看远程画面"
     ],
     "harmony": [
       "OpenFEC 告知",

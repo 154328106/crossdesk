@@ -372,3 +372,6 @@
 "清除全部公告？" = "Clear all announcements?";
 "将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。" = "Removes the announcements stored on this device. The server is untouched and new announcements still arrive.";
 "连接服务器后可获取最新公告。" = "Connect to the server to get the latest announcements.";
+"全屏" = "Fullscreen";
+"退出全屏" = "Exit fullscreen";
+"隐藏所有浮动控件，只看远程画面" = "Hides every floating control and keeps only the remote screen";

@@ -372,3 +372,6 @@
 "清除全部公告？" = "¿Borrar todos los anuncios?";
 "将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。" = "Elimina los anuncios guardados en este dispositivo. El servidor no se modifica y los nuevos anuncios seguirán llegando.";
 "连接服务器后可获取最新公告。" = "Conéctese al servidor para obtener los últimos anuncios.";
+"全屏" = "Pantalla completa";
+"退出全屏" = "Salir de pantalla completa";
+"隐藏所有浮动控件，只看远程画面" = "Oculta todos los controles flotantes y deja solo la pantalla remota";

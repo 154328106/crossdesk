@@ -372,3 +372,6 @@
 "清除全部公告？" = "Alle Mitteilungen löschen?";
 "将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。" = "Entfernt die auf diesem Gerät gespeicherten Mitteilungen. Der Server bleibt unberührt, neue Mitteilungen kommen weiterhin an.";
 "连接服务器后可获取最新公告。" = "Stellen Sie eine Verbindung zum Server her, um die neuesten Ankündigungen zu erhalten.";
+"全屏" = "Vollbild";
+"退出全屏" = "Vollbild beenden";
+"隐藏所有浮动控件，只看远程画面" = "Blendet alle schwebenden Bedienelemente aus und zeigt nur den entfernten Bildschirm";

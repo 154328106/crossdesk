@@ -372,3 +372,6 @@
 "清除全部公告？" = "Limpar todos os comunicados?";
 "将清除本机保存的公告记录，服务端不受影响，之后仍会收到新公告。" = "Remove os comunicados salvos neste dispositivo. O servidor não é alterado e novos comunicados continuam chegando.";
 "连接服务器后可获取最新公告。" = "Conecte-se ao servidor para obter os anúncios mais recentes.";
+"全屏" = "Tela cheia";
+"退出全屏" = "Sair da tela cheia";
+"隐藏所有浮动控件，只看远程画面" = "Oculta todos os controles flutuantes e deixa apenas a tela remota";

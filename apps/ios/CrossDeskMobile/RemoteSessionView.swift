@@ -72,6 +72,8 @@ struct RemoteSessionView: View {
     @State private var cursorPosition: CGPoint?
     @State private var statusMenuVisible = false
     @State private var statusOrbCenter: CGPoint?
+    /// Hides every floating control so the remote desktop gets the whole screen.
+    @State private var fullscreen = false
     @GestureState private var statusOrbDragTranslation = CGSize.zero
 
     var body: some View {
@@ -203,8 +205,15 @@ struct RemoteSessionView: View {
                 .zIndex(20)
             }
 
-            floatingStatusControls
-                .zIndex(30)
+            if !fullscreen {
+                floatingStatusControls
+                    .zIndex(30)
+            }
+
+            if fullscreen {
+                fullscreenExitControl
+                    .zIndex(35)
+            }
 
             if session.isConnected && session.privacyScreen.unlockNotice {
                 privacyUnlockOverlay.zIndex(60)
@@ -214,7 +223,7 @@ struct RemoteSessionView: View {
                     .zIndex(50)
             }
         }
-        .statusBarHidden(hasVerticalSystemBar)
+        .statusBarHidden(hasVerticalSystemBar || fullscreen)
         .alert(NSLocalizedString("升级提示", comment: ""), isPresented: Binding(
             get: { !session.privacyScreen.unlockNotice && session.remoteUpdateMessage != nil },
             set: { if !$0 && !session.privacyScreen.unlockNotice { session.dismissRemoteUpdate() } }
@@ -256,6 +265,7 @@ struct RemoteSessionView: View {
             cursorPosition = nil
             statusMenuVisible = false
             statusOrbCenter = nil
+            fullscreen = false
         }
         .onValueChange(of: session.selectedDisplay) { _ in
             systemKeyboardContext.remoteFocusWillChange()
@@ -476,6 +486,15 @@ struct RemoteSessionView: View {
                                 withAnimation(.easeOut(duration: 0.18)) {
                                     disconnectConfirmationVisible = true
                                 }
+                            },
+                            fullscreen: fullscreen,
+                            toggleFullscreen: {
+                                mouseInput.releaseAll()
+                                keyboardInputVisible = false
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    fullscreen = true
+                                    statusMenuVisible = false
+                                }
                             }
                         )
                         .transition(.scale(scale: 0.94, anchor: .topTrailing)
@@ -519,6 +538,34 @@ struct RemoteSessionView: View {
             .frame(width: containerSize.width, height: containerSize.height)
             .onValueChange(of: containerSize) { _ in mouseInput.releaseAll() }
         }
+    }
+
+    /// Small translucent pill that stays reachable while every other control is
+    /// hidden. It only occupies its own frame, so the remote desktop keeps
+    /// receiving every other touch.
+    private var fullscreenExitControl: some View {
+        GeometryReader { proxy in
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    fullscreen = false
+                }
+            } label: {
+                Image(systemName: "arrow.down.right.and.arrow.up.left")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 42, height: 30)
+                    .background(Color.black.opacity(0.42), in: Capsule())
+                    .overlay {
+                        Capsule().strokeBorder(Color.white.opacity(0.16), lineWidth: 1)
+                    }
+            }
+            .buttonStyle(.plain)
+            .position(x: max(30, proxy.size.width - 32),
+                      y: max(26, proxy.size.height - proxy.safeAreaInsets.bottom - 26))
+            .accessibilityLabel(NSLocalizedString("退出全屏", comment: ""))
+        }
+        .ignoresSafeArea(.container, edges: hasVerticalSystemBar ? .all : [])
+        .transition(.opacity)
     }
 
     private func boundedMouseCenter(_ preferred: CGPoint?, in size: CGSize) -> CGPoint {
@@ -1153,6 +1200,8 @@ private struct FloatingSessionMenu: View {
     let chooseFile: () -> Void
     let close: () -> Void
     let disconnect: () -> Void
+    let fullscreen: Bool
+    let toggleFullscreen: () -> Void
 
     let columnCount: Int
     private var columns: [GridItem] {
@@ -1167,7 +1216,9 @@ private struct FloatingSessionMenu: View {
          showKeyboard: @escaping () -> Void,
          chooseFile: @escaping () -> Void,
          close: @escaping () -> Void,
-         disconnect: @escaping () -> Void) {
+         disconnect: @escaping () -> Void,
+         fullscreen: Bool,
+         toggleFullscreen: @escaping () -> Void) {
         self.session = session
         self.columnCount = columnCount
         self.virtualMouseVisible = virtualMouseVisible
@@ -1177,6 +1228,8 @@ private struct FloatingSessionMenu: View {
         self.chooseFile = chooseFile
         self.close = close
         self.disconnect = disconnect
+        self.fullscreen = fullscreen
+        self.toggleFullscreen = toggleFullscreen
         // Render the first frame with real values instead of replacing empty
         // placeholders while the panel's insertion animation is running.
         _displayedNetworkSnapshot = State(initialValue: session.networkSnapshot)
@@ -1331,6 +1384,13 @@ private struct FloatingSessionMenu: View {
                     }
                     FloatingControlButton(title: NSLocalizedString("剪贴板", comment: ""), symbol: "doc.on.clipboard",
                                           action: session.sendClipboard)
+                    FloatingControlButton(
+                        title: NSLocalizedString("全屏", comment: ""),
+                        symbol: "arrow.up.left.and.arrow.down.right",
+                        selected: fullscreen,
+                        action: toggleFullscreen
+                    )
+                    .accessibilityHint(NSLocalizedString("隐藏所有浮动控件，只看远程画面", comment: ""))
                     if session.privacyScreen.desktopAvailable {
                         FloatingControlButton(
                             title: session.privacyScreen.buttonTitle(at: session.privacyClock),
